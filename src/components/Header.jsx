@@ -39,12 +39,12 @@ export default function Header() {
       <header
         className={[
           "fixed top-0 left-0 right-0 z-50 transition-transform duration-150",
-          isScrolled ? "-translate-y-full" : "translate-y-0",
+          isScrolled ? "-translate-y-full " : "translate-y-0",
         ].join(" ")}
       >
         <div className="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06]" />
 
-        <nav className="relative flex items-center justify-between px-6 md:px-8 h-16 max-w-[1200px] mx-auto">
+        <nav className="relative flex items-center justify-between px-6 md:px-8 h-26 max-w-[1200px] mx-auto">
           {/* LEFT: Logo */}
           <a href="/" className="flex items-center gap-2.5 shrink-0 group">
             <div className="relative w-8 h-8 rounded-lg overflow-hidden">
@@ -73,7 +73,7 @@ export default function Header() {
                   <a
                     href={href}
                     className={[
-                      "relative px-4 py-1.5 text-[16px] font-bold rounded-lg transition-all duration-150",
+                      "relative px-4 py-1.5 text-[18px] font-bold rounded-lg transition-all duration-150",
                       "outline-none focus-visible:ring-2 focus-visible:ring-violet-500/60",
                       isActive
                         ? "text-violet-400"
@@ -92,7 +92,6 @@ export default function Header() {
 
           {/* RIGHT: User section */}
           <div className="flex items-center gap-2 shrink-0">
-
             {/* Notification bell */}
             <div className="relative">
               <button
@@ -118,8 +117,8 @@ export default function Header() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500 ring-2 ring-[#0a0a0f]" />
               </button>
 
-              {notifOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-72 sm:w-72 rounded-xl bg-[#13131e] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden sm:right-0 right-[-3rem]">
+              {notifOpen && !isScrolled && (
+                <div className="absolute right-0 mt-2 w-72 rounded-xl bg-[#13131e] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
                     <span className="text-[13px] font-semibold text-white">
                       Notifications
@@ -200,8 +199,8 @@ export default function Header() {
                 </svg>
               </button>
 
-              {userOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-52 sm:w-52 rounded-xl bg-[#13131e] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden py-1 sm:right-0 right-[-1rem]">
+              {userOpen && !isScrolled && (
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-52 sm:w-52 rounded-xl bg-[#13131e] border border-white/[0.08] shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden py-1 sm:right-0 right-[-1rem] z-50">
                   <div className="px-4 py-3 border-b border-white/[0.06]">
                     <p className="text-[13px] font-semibold text-white">
                       John Doe
@@ -288,9 +287,9 @@ export default function Header() {
       {/* ── SUB NAVBAR (appears on scroll) ── */}
       <div
         className={[
-          "fixed top-0 left-0 right-0 z-50 bg-[#12121a]/65 backdrop-blur-sm border-b border-white/[0.04] transition-all duration-150 ease-out",
+          "fixed top-10 left-0 right-0 z-40 bg-[#12121a]/65 backdrop-blur-sm border-b border-white/[0.04] transition-all duration-150 ease-out ",
           isScrolled
-            ? "opacity-100 translate-y-0 pointer-events-none"
+            ? "opacity-100 -translate-y-10 pointer-events-none"
             : "opacity-100 translate-y-16",
         ].join(" ")}
       >
@@ -330,7 +329,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search the store..."
-                className="w-full h-9 pl-3 pr-10 rounded-md bg-[#1a1a2e] border border-white/[0.08] text-[13px] text-white/80 placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all duration-150"
+                className="w-full h-9 pl-3 pr-10 rounded-md bg-[#0d1117] border border-white/[0.08] text-[13px] text-white/80 placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all duration-150"
               />
               <button className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded bg-violet-600 hover:bg-violet-500 transition-colors duration-150 cursor-pointer">
                 <svg

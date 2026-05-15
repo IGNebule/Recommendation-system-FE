@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Featured from "../components/Featured";
 import getGames from "../services/gameService";
 import Header from "../components/Header";
+import GameGrid from "../components/GameGrid";
 
 const Landing = () => {
   const [games, setGames] = useState([]);
@@ -20,7 +21,7 @@ const Landing = () => {
   const fetchGames = async () => {
     try {
       const data = await getGames();
-      setGames(data.slice(0, 12));
+      setGames(data.slice(0, 100));
     } catch (err) {
       console.error(err);
     }
@@ -29,15 +30,9 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-[#0d1117]">
       <Header />
-      <main
-        className="pt-34"
-      >
+      <main className="flex flex-col gap-6 pt-44">
         <Featured games={games} />
-        <Featured games={games} />
-        <Featured games={games} />
-        <Featured games={games} />
-        <Featured games={games} />
-        <Featured games={games} />
+        <GameGrid games={games} />
       </main>
     </div>
   );
