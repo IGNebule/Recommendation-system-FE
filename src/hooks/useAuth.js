@@ -1,9 +1,14 @@
-export const checkAuth = () => {
-  const token = localStorage.getItem("token");
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext"
 
-  return !!token;
-};
+const useAuth = () => {
+    const context = useContext(AuthContext)
 
-export const logoutUser = () => {
-  localStorage.removeItem("token");
-};
+    if (!context) {
+        throw new Error("useAuth must be used inside AuthProvider")
+    }
+
+    return context
+}
+
+export default useAuth

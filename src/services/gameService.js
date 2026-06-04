@@ -1,9 +1,23 @@
-import API from '../api/api'
+import API from "../api/api"
 
-const getGames = async () => {
-    const res = await API.get("/games")
+const getGames = async ({ page = 1, limit = 15} = {}) =>  {
+    const res = await API.get('/games', {
+        params: {
+            page,
+            limit,
+        }
+    })
 
     return res.data
 }
 
-export default getGames
+const getGameById = async (appid) => {
+    const res = await API.get(`/games/${appid}`)
+
+    return res.data
+}
+
+export default {
+    getGames,
+    getGameById,
+}
