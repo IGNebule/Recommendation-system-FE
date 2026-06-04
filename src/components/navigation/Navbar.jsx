@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import useAuth from "../../hooks/useAuth";
+import logo from "../../assets/GameReco.png"
 
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN
 
@@ -134,15 +135,13 @@ const Navbar = ({ isScrolled = false }) => {
     >
       <nav className="mx-auto flex h-[72px] max-w-[1260px] items-center justify-between px-4">
         {/* Left: Logo + main links */}
-        <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-lg font-black text-[#171a21]">
-              G
-            </div>
-
-            <span className="text-xl font-black uppercase tracking-[0.18em] text-white/90">
-              GameRec
-            </span>
+        <div className="flex items-center gap-5">
+          <Link to="/" className="flex items-center">
+            <img
+              src={logo}
+              alt="GameRec Logo"
+              className="h-20 w-auto object-contain"
+            />
           </Link>
 
           <div className="hidden items-center gap-6 md:flex">
@@ -234,7 +233,7 @@ const Navbar = ({ isScrolled = false }) => {
           ) : (
             <Link
               to="/login"
-              className="rounded bg-[#75a313] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#8bc53f]"
+              className="rounded bg-[#7034d8] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#8e62db]"
             >
               Login
             </Link>

@@ -8,3 +8,4 @@ export { default as searchService } from "./searchService";
 export { default as tagService } from "./tagService";
 export { default as reviewService } from "./reviewService"
 export { default as profileService } from "./profileService"
+export { default as reportService } from "./reportService";

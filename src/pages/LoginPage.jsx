@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import useAuth from "../hooks/useAuth";
+import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -57,6 +58,19 @@ const LoginPage = () => {
             {error}
           </div>
         )}
+
+        <GoogleLoginButton
+          onSuccessRedirect={() => navigate("/")}
+          onError={setError}
+        />
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-xs uppercase tracking-wide text-white/35">
+            or
+          </span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
 
         <input
           name="email"

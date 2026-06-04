@@ -1,42 +1,118 @@
+import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 
-import { genreService } from "../services";
-
-import useAsync from "../hooks/useAsync";
+import useInfiniteGames from "../hooks/useInfiniteGames";
+import usePreferences from "../hooks/usePreferences";
 
 import GameGrid from "../components/games/GameGrid";
+
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
+import EmptyState from "../components/ui/EmptyState";
+
+const formatGenreValue = (value = "") => {
+  return decodeURIComponent(value).replace(/-/g, " ").trim();
+};
+
+const formatGenreTitle = (value = "") => {
+  return formatGenreValue(value).replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 const GenrePage = () => {
   const { genre } = useParams();
+  const sentinelRef = useRef(null);
 
-  const { data, loading, error } = useAsync(
-    () =>
-      genreService.getGamesByGenre({
-        genre,
-        page: 1,
-        limit: 20,
-      }),
-    [genre],
-  );
+  const { savedAppids, togglePreference } = usePreferences();
 
-    console.log("GENRE PARAM:", genre);
-    console.log("GENRE DATA:", data);
-    console.log("GENRE LOADING:", loading);
-    console.log("GENRE ERROR:", error);
-    console.log("GENRE GAMES:", data?.data);
-    console.log("GENRE GAMES LENGTH:", data?.data?.length);
+  const genreFilter = useMemo(() => {
+    return formatGenreValue(genre);
+  }, [genre]);
+
+  const genreTitle = useMemo(() => {
+    return formatGenreTitle(genre);
+  }, [genre]);
+
+  const filters = useMemo(() => {
+    return {
+      genre: genreFilter,
+      sort: "trending",
+    };
+  }, [genreFilter]);
+
+  const { games, total, hasMore, loading, initialLoading, error, loadMore } =
+    useInfiniteGames({
+      limit: 15,
+      filters,
+    });
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasMore && !loading) {
+          loadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loading, loadMore]);
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold capitalize">Genre: {genre}</h1>
+    <div className="w-full">
+      <div className="mx-auto w-full max-w-[1260px] px-4">
+        <section className="mb-10 scroll-mt-32">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold uppercase text-white">
+                {genreTitle} Games
+              </h2>
+            </div>
+          </div>
 
-      {loading && <LoadingState />}
+          {initialLoading && <LoadingState variant="grid" count={15} />}
 
-      {error && <ErrorState message={error} />}
+          {error && <ErrorState message={error} />}
 
-      {!loading && !error && <GameGrid games={data?.data || []} />}
+          {!initialLoading && !error && games.length === 0 && (
+            <EmptyState message={`No games found for ${genreTitle}`} />
+          )}
+
+          {!initialLoading && !error && games.length > 0 && (
+            <GameGrid
+              games={games}
+              savedAppids={savedAppids}
+              onToggleSave={togglePreference}
+            />
+          )}
+
+          <div ref={sentinelRef} className="h-10" />
+
+          {!initialLoading && loading && (
+            <div className="mt-4">
+              <LoadingState variant="grid" count={3} />
+            </div>
+          )}
+
+          {!hasMore && games.length > 0 && (
+            <p className="mt-6 text-center text-sm text-white/35">
+              You have reached the end.
+            </p>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

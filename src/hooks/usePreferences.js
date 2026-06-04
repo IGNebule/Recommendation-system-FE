@@ -1,95 +1,130 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { preferenceService } from "../services";
 
-const getAppid = (item) => {
-  if (!item) return null;
-
-  if (typeof item === "object") {
-    return String(item.appid);
-  }
-
-  return String(item);
-};
-
 const usePreferences = () => {
-  const [savedAppids, setSavedAppids] = useState(new Set());
-  const [loading, setLoading] = useState(false);
+  const [libraryData, setLibraryData] = useState({
+    savedAppids: [],
+    library: [],
+    gamerDNA: {
+      topAttributes: [],
+      genreBreakdown: [],
+    },
+    recommendations: [],
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const loadPreferences = useCallback(async () => {
+  const savedAppids = useMemo(() => {
+    return new Set((libraryData.savedAppids || []).map(String));
+  }, [libraryData.savedAppids]);
+
+  const fetchPreferences = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
 
       const result = await preferenceService.getPreferences();
 
-      const preferences = result.preferences || [];
-
-      const ids = preferences.map(getAppid).filter(Boolean);
-
-      setSavedAppids(new Set(ids));
+      setLibraryData({
+        savedAppids: result.savedAppids || [],
+        library: result.library || [],
+        gamerDNA: result.gamerDNA || {
+          topAttributes: [],
+          genreBreakdown: [],
+        },
+        recommendations: result.recommendations || [],
+      });
     } catch (err) {
-      setError(err.message || "Failed to load preferences");
+      setError(err.message || "Failed to fetch library");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const togglePreference = useCallback(
-    async (appid) => {
-      const id = String(appid);
-      const alreadySaved = savedAppids.has(id);
+  const savePreference = async (appid) => {
+    const result = await preferenceService.savePreference(appid);
 
-      setSavedAppids((prev) => {
-        const next = new Set(prev);
+    setLibraryData({
+      savedAppids: result.savedAppids || [],
+      library: result.library || [],
+      gamerDNA: result.gamerDNA || {
+        topAttributes: [],
+        genreBreakdown: [],
+      },
+      recommendations: result.recommendations || [],
+    });
 
-        if (alreadySaved) {
-          next.delete(id);
-        } else {
-          next.add(id);
-        }
+    return result;
+  };
 
-        return next;
-      });
+  const removePreference = async (appid) => {
+    const result = await preferenceService.removePreference(appid);
 
-      try {
-        if (alreadySaved) {
-          await preferenceService.removePreferences(id);
-        } else {
-          await preferenceService.savePreferences(id);
-        }
-      } catch (err) {
-        setSavedAppids((prev) => {
-          const next = new Set(prev);
+    setLibraryData({
+      savedAppids: result.savedAppids || [],
+      library: result.library || [],
+      gamerDNA: result.gamerDNA || {
+        topAttributes: [],
+        genreBreakdown: [],
+      },
+      recommendations: result.recommendations || [],
+    });
 
-          if (alreadySaved) {
-            next.add(id);
-          } else {
-            next.delete(id);
-          }
+    return result;
+  };
 
-          return next;
-        });
+  const togglePreference = async (appid) => {
+    try {
+      setSaving(true);
 
-        throw err;
+      if (savedAppids.has(String(appid))) {
+        return await removePreference(appid);
       }
-    },
-    [savedAppids],
-  );
+
+      return await savePreference(appid);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updatePreferenceWeight = async ({ appid, weight }) => {
+    const result = await preferenceService.updatePreferenceWeight({
+      appid,
+      weight,
+    });
+
+    setLibraryData({
+      savedAppids: result.savedAppids || [],
+      library: result.library || [],
+      gamerDNA: result.gamerDNA || {
+        topAttributes: [],
+        genreBreakdown: [],
+      },
+      recommendations: result.recommendations || [],
+    });
+
+    return result;
+  };
 
   useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   return {
+    ...libraryData,
     savedAppids,
     loading,
+    saving,
     error,
+    refetch: fetchPreferences,
+    savePreference,
+    removePreference,
     togglePreference,
-    refetch: loadPreferences,
+    updatePreferenceWeight,
   };
 };
 
-console.log("Preference Service:", preferenceService)
 export default usePreferences;

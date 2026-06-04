@@ -1,47 +1,58 @@
-import API from "../api/api"
+import API from "../api/api";
 
-const TOKEN_KEY = "token"
+const TOKEN_KEY = "token";
 
 const register = async ({ email, password }) => {
-    const res = await API.post("/auth/register", {
-        email,
-        password,
-    })
+  const res = await API.post("/auth/register", {
+    email,
+    password,
+  });
 
-    return res.data
-}
+  return res.data;
+};
 
 const login = async ({ email, password }) => {
-    const res = await API.post("/auth/login", {
-        email,
-        password,
-    })
+  const res = await API.post("/auth/login", {
+    email,
+    password,
+  });
 
-    const token = res.data?.token
+  if (res.data.token) {
+    localStorage.setItem(TOKEN_KEY, res.data.token);
+  }
 
-    if (token) {
-        localStorage.setItem(TOKEN_KEY, token)
-    }
+  return res.data;
+};
 
-    return res.data
-}
+const googleLogin = async ({ credential }) => {
+  const res = await API.post("/auth/google", {
+    credential,
+  });
+
+  if (res.data.token) {
+    localStorage.setItem(TOKEN_KEY, res.data.token);
+  }
+
+  return res.data;
+};
 
 const logout = () => {
-    localStorage.removeItem(TOKEN_KEY)
-}
+  localStorage.removeItem(TOKEN_KEY);
+};
 
 const getToken = () => {
-    return localStorage.getItem(TOKEN_KEY)
-}
+  return localStorage.getItem(TOKEN_KEY);
+};
 
 const isAuthenticated = () => {
-    return Boolean(getToken())
-}
+  return Boolean(getToken());
+};
 
 export default {
-    register,
-    login,
-    logout,
-    getToken,
-    isAuthenticated,
-}
+  register,
+  login,
+  googleLogin,
+  logout,
+  getToken,
+  isAuthenticated,
+};

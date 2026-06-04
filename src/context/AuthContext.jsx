@@ -73,6 +73,26 @@ const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const loginWithGoogle = async ({ credential }) => {
+    const result = await authService.googleLogin({
+      credential,
+    });
+
+    const savedToken = result.token;
+
+    setToken(savedToken);
+
+    if (result.user) {
+      setUser(result.user);
+    } else {
+      setUser(getUserFromToken(savedToken));
+    }
+
+    await refreshProfile();
+
+    return result;
+  };
+
   const register = async ({ email, password }) => {
     return authService.register({
       email,
@@ -113,6 +133,7 @@ const AuthProvider = ({ children }) => {
       profile,
       isAuthenticated: Boolean(token && user),
       login,
+      loginWithGoogle,
       register,
       logout,
       refreshProfile,

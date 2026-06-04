@@ -8,6 +8,8 @@ import DiscoverPage from "../pages/DiscoverPage";
 import AboutPage from "../pages/AboutPage";
 import ProfilePage from "../pages/ProfilePage";
 import SettingsPage from "../pages/SettingsPage";
+import LibraryPage from "../pages/LibraryPage";
+import ReportPage from "../pages/ReportPage";
 
 import GameDetailPage from "../pages/GameDetailPage";
 import SearchPage from "../pages/SearchPage";
@@ -26,8 +28,10 @@ const AppRouter = () => {
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/preferences" element={<LibraryPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/reports" element={<ReportPage />} />
 
         <Route path="/games/:appid" element={<GameDetailPage />} />
 

@@ -1,25 +1,34 @@
-import API from "../api/api"
+import API from "../api/api";
 
 const getPreferences = async () => {
-    const res = await API.get("/preferences")
+  const res = await API.get("/preferences");
 
-    return res.data
-}
+  return res.data;
+};
 
-const savePreferences = async (appid) => {
-    const res = await API.post(`/preferences/${appid}`)
+const savePreference = async (appid) => {
+  const res = await API.post(`/preferences/${appid}`);
 
-    return res.data
-}
+  return res.data;
+};
 
-const removePreferences = async (appid) => {
-    const res = await API.delete(`/preferences/${appid}`)
+const removePreference = async (appid) => {
+  const res = await API.delete(`/preferences/${appid}`);
 
-    return res.data
-}
+  return res.data;
+};
+
+const updatePreferenceWeight = async ({ appid, weight }) => {
+  const res = await API.patch(`/preferences/${appid}/weight`, {
+    weight,
+  });
+
+  return res.data;
+};
 
 export default {
-    getPreferences,
-    savePreferences,
-    removePreferences
-}
+  getPreferences,
+  savePreference,
+  removePreference,
+  updatePreferenceWeight,
+};
