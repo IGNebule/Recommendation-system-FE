@@ -40,13 +40,17 @@ const SubNavbar = ({ isScrolled = false }) => {
   };
 
   return (
-    <div className={`w-full bg-gradient-to-r from-[#1d1830]/90 via-[#161224]/90 to-[#020105]/90 transition-all duration-300 ease-in-out ${
+    <div
+      className={`w-full bg-gradient-to-r from-[#1d1830]/90 via-[#161224]/90 to-[#020105]/90 transition-all duration-300 ease-in-out ${
         isScrolled ? "shadow-[0_8px_24px_rgba(0,0,0,0.35)]" : ""
-    }`}>
+      }`}
+    >
       <div className="mx-auto max-w-[1260px] px-4 ">
-        <div className={`flex min-h-[48px] items-center justify-between gap-4 px-4 transition-all duration-300 ${
+        <div
+          className={`flex min-h-[48px] items-center justify-between gap-4 px-4 transition-all duration-300 ${
             isScrolled ? "rounded-none" : ""
-        }`}>
+          }`}
+        >
           {/* Left links */}
           <nav className="flex items-center gap-1">
             {subLinks.map((link) => (
@@ -75,7 +79,7 @@ const SubNavbar = ({ isScrolled = false }) => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search the store"
-              className="relative z-50 h-9 flex-1 border border-[#2D2643] px-4 text-sm italic text-white outline-none placeholder:text-[#9CA3AF] focus:border-[#7C3AED]"
+              className="h-9 flex-1 border border-[#2D2643] bg-transparent px-4 text-sm italic text-white outline-none placeholder:text-[#9CA3AF] focus:border-[#7C3AED]"
             />
 
             <button

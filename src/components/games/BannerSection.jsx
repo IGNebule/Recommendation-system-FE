@@ -13,10 +13,10 @@ const BannerSection = ({
   return (
     <section className="mb-12">
       <div className="mb-5">
-        <h2 className="text-l font-normal text-white">{title}</h2>
+        <h2 className="text-lg uppercase font-normal text-white">{title}</h2>
       </div>
 
-      {loading && <LoadingState message="Loading featured games..." />}
+      {loading && <LoadingState variant="banner" />}
 
       {error && <ErrorState message={error} />}
 

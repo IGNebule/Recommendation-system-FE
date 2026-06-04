@@ -3,14 +3,12 @@ import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import SubNavbar from "./SubNavbar";
 
-const SCROLL_THRESHOLD = 20;
-
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > SCROLL_THRESHOLD);
+      setIsScrolled(window.scrollY > 80);
     };
 
     handleScroll();
@@ -25,7 +23,7 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full">
+    <header className="sticky top-0 z-[100] w-full">
       <Navbar isScrolled={isScrolled} />
       <SubNavbar isScrolled={isScrolled} />
     </header>

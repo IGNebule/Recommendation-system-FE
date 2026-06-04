@@ -1,5 +1,6 @@
 import { createContext, useEffect, useMemo, useState } from "react";
-import { authService } from "../services";
+
+import { authService, profileService } from "../services";
 
 export const AuthContext = createContext(null);
 
@@ -9,11 +10,10 @@ const decodeJwtPayload = (token) => {
 
     if (!payload) return null;
 
-    const decodePayload = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const decodedPayload = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
 
-    return JSON.parse(decodePayload);
-  } catch (err) {
-    console.error(err);
+    return JSON.parse(decodedPayload);
+  } catch {
     return null;
   }
 };
@@ -32,9 +32,30 @@ const getUserFromToken = (token) => {
 
 const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => authService.getToken());
-  const [user, setUser] = useState(() => {
-    return getUserFromToken(authService.getToken());
-  });
+  const [user, setUser] = useState(() =>
+    getUserFromToken(authService.getToken()),
+  );
+  const [profile, setProfile] = useState(null);
+
+  const refreshProfile = async () => {
+    const savedToken = authService.getToken();
+
+    if (!savedToken) {
+      setProfile(null);
+      return null;
+    }
+
+    const result = await profileService.getMe();
+
+    setProfile(result.profile);
+
+    setUser((prev) => ({
+      ...prev,
+      ...result.profile,
+    }));
+
+    return result.profile;
+  };
 
   const login = async ({ email, password }) => {
     const result = await authService.login({
@@ -47,16 +68,16 @@ const AuthProvider = ({ children }) => {
     setToken(savedToken);
     setUser(getUserFromToken(savedToken));
 
+    await refreshProfile();
+
     return result;
   };
 
   const register = async ({ email, password }) => {
-    const result = await authService.register({
+    return authService.register({
       email,
       password,
     });
-
-    return result;
   };
 
   const logout = () => {
@@ -64,6 +85,7 @@ const AuthProvider = ({ children }) => {
 
     setToken(null);
     setUser(null);
+    setProfile(null);
   };
 
   useEffect(() => {
@@ -72,27 +94,32 @@ const AuthProvider = ({ children }) => {
     if (!savedToken) {
       setToken(null);
       setUser(null);
+      setProfile(null);
       return;
     }
 
     setToken(savedToken);
     setUser(getUserFromToken(savedToken));
+
+    refreshProfile().catch(() => {
+      setProfile(null);
+    });
   }, []);
 
   const value = useMemo(() => {
     return {
       token,
       user,
+      profile,
       isAuthenticated: Boolean(token && user),
       login,
       register,
       logout,
+      refreshProfile,
     };
-  }, [token, user]);
+  }, [token, user, profile]);
 
-  return <AuthContext.Provider value={value}>
-    {children}
-  </AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export default AuthProvider
+export default AuthProvider;

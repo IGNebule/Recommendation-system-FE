@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { discoverService, genreService, tagService } from "../services";
 
@@ -6,14 +7,13 @@ import useAsync from "../hooks/useAsync";
 import usePreferences from "../hooks/usePreferences";
 
 import DiscoverFilterSelect from "../components/discover/DiscoverFilterSelect";
-import DiscoverSection from "../components/discover/DiscoverSection";
-
-const RECENT_MIN_YEAR = 2020;
+import DiscoverPreviewSection from "../components/discover/DiscoverPreviewSection";
+import AllGamesSection from "../components/discover/AllGamesSection";
 
 const CATEGORY_OPTIONS = [
   {
     label: "Free to Play",
-    value: "free to play",
+    value: "free-to-play",
     terms: ["free to play"],
   },
   {
@@ -28,53 +28,13 @@ const CATEGORY_OPTIONS = [
   },
   {
     label: "Early Access",
-    value: "early access",
+    value: "early-access",
     terms: ["early access"],
-  },
-  {
-    label: "Animation",
-    value: "animation",
-    terms: ["animation and modeling"],
-  },
-  {
-    label: "Casual",
-    value: "casual",
-    terms: ["casual"],
-  },
-  {
-    label: "Illustration",
-    value: "illustration",
-    terms: ["design and illustration"],
-  },
-  {
-    label: "Documentary",
-    value: "documentary",
-    terms: ["documentary"],
-  },
-  {
-    label: "Gore",
-    value: "gore",
-    terms: ["gore"],
-  },
-  {
-    label: "Indie",
-    value: "indie",
-    terms: ["indie"],
-  },
-  {
-    label: "MMORPG",
-    value: "mmorpg",
-    terms: ["massively multiplayer"],
   },
   {
     label: "Mature",
     value: "mature",
     terms: ["nudity", "sexual content"],
-  },
-  {
-    label: "Racing",
-    value: "racing",
-    terms: ["racing"],
   },
   {
     label: "RPG",
@@ -96,82 +56,7 @@ const CATEGORY_OPTIONS = [
     value: "strategy",
     terms: ["strategy"],
   },
-  {
-    label: "Learning",
-    value: "learning",
-    terms: ["education", "tutorial", "software training"],
-  },
-  {
-    label: "Creative Tools",
-    value: "creative-tools",
-    terms: [
-      "game development",
-      "photo editing",
-      "audio production",
-      "video production",
-      "web publishing",
-    ],
-  },
-  {
-    label: "Business & Utilities",
-    value: "business-utilities",
-    terms: ["accounting", "utilities"],
-  },
 ];
-
-const normalize = (value = "") => {
-  return String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-const getGameTerms = (game) => {
-  const terms = [
-    ...(game.genreList || []),
-    ...(game.tagList || []),
-    ...(game.categoryList || []),
-    game.genres,
-    game.tags,
-    game.categories,
-  ];
-
-  return terms.filter(Boolean).map(normalize);
-};
-
-const matchesTerm = (game, term) => {
-  if (!term) return true;
-
-  const normalizedTerm = normalize(term);
-  const terms = getGameTerms(game);
-
-  return terms.some((item) => {
-    return item === normalizedTerm || item.includes(normalizedTerm);
-  });
-};
-
-const matchesCategory = (game, categoryValue) => {
-  if (!categoryValue) return true;
-
-  const selectedCategory = CATEGORY_OPTIONS.find((category) => {
-    return category.value === categoryValue;
-  });
-
-  if (!selectedCategory) return true;
-
-  return selectedCategory.terms.some((term) => matchesTerm(game, term));
-};
-
-const applyFilters = ({ games = [], genre = "", tag = "", category = "" }) => {
-  return games.filter((game) => {
-    return (
-      matchesTerm(game, genre) &&
-      matchesTerm(game, tag) &&
-      matchesCategory(game, category)
-    );
-  });
-};
 
 const toSelectOptions = (items = []) => {
   return items.map((item) => ({
@@ -180,39 +65,72 @@ const toSelectOptions = (items = []) => {
   }));
 };
 
+const getSectionTitle = (section) => {
+  if (section === "top-rated") return "Top Rated Games";
+  if (section === "most-played") return "Most Played Games";
+
+  return "Trending Games";
+};
+
 const DiscoverPage = () => {
   const { savedAppids, togglePreference } = usePreferences();
 
-  const [selectedGenre, setSelectedGenre] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const sectionFromUrl = searchParams.get("section") || "trending";
+
+  const [selectedGenre, setSelectedGenre] = useState(
+    searchParams.get("genre") || "",
+  );
+  const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "",
+  );
+
+  const selectedCategoryTerms = useMemo(() => {
+    if (!selectedCategory) return "";
+
+    const category = CATEGORY_OPTIONS.find((item) => {
+      return item.value === selectedCategory;
+    });
+
+    if (!category) return "";
+
+    return category.terms.join(",");
+  }, [selectedCategory]);
+
+  const allGamesFilters = useMemo(() => {
+    return {
+      sort: sectionFromUrl,
+      genre: selectedGenre,
+      tag: selectedTag,
+      category: selectedCategoryTerms,
+      minReviews: sectionFromUrl === "top-rated" ? 500 : undefined,
+    };
+  }, [sectionFromUrl, selectedGenre, selectedTag, selectedCategoryTerms]);
 
   const genres = useAsync(() => genreService.getGenres());
-
   const tags = useAsync(() => tagService.getTags());
 
   const trending = useAsync(() =>
     discoverService.getTrendingGames({
       page: 1,
-      limit: 30,
-      minYear: RECENT_MIN_YEAR,
+      limit: 3,
     }),
   );
 
   const topRated = useAsync(() =>
     discoverService.getTopRatedGames({
       page: 1,
-      limit: 30,
+      limit: 3,
       minReviews: 500,
-      minYear: RECENT_MIN_YEAR,
     }),
   );
 
   const mostPlayed = useAsync(() =>
     discoverService.getMostPlayedGames({
       page: 1,
-      limit: 30,
-      minYear: RECENT_MIN_YEAR,
+      limit: 3,
     }),
   );
 
@@ -224,133 +142,185 @@ const DiscoverPage = () => {
     return toSelectOptions(tags.data?.tags || tags.data?.topics || []);
   }, [tags.data]);
 
-  const filteredTrending = useMemo(() => {
-    return applyFilters({
-      games: trending.data?.data || [],
-      genre: selectedGenre,
-      tag: selectedTag,
-      category: selectedCategory,
-    });
-  }, [trending.data, selectedGenre, selectedTag, selectedCategory]);
+  const updateUrl = ({
+    section = sectionFromUrl,
+    genre = selectedGenre,
+    tag = selectedTag,
+    category = selectedCategory,
+  } = {}) => {
+    const params = new URLSearchParams();
 
-  const filteredTopRated = useMemo(() => {
-    return applyFilters({
-      games: topRated.data?.data || [],
-      genre: selectedGenre,
-      tag: selectedTag,
-      category: selectedCategory,
-    });
-  }, [topRated.data, selectedGenre, selectedTag, selectedCategory]);
+    if (section) params.set("section", section);
+    if (genre) params.set("genre", genre);
+    if (tag) params.set("tag", tag);
+    if (category) params.set("category", category);
 
-  const filteredMostPlayed = useMemo(() => {
-    return applyFilters({
-      games: mostPlayed.data?.data || [],
-      genre: selectedGenre,
-      tag: selectedTag,
-      category: selectedCategory,
+    setSearchParams(params);
+  };
+
+  const scrollToAllGames = () => {
+    requestAnimationFrame(() => {
+      document.getElementById("all-games")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
-  }, [mostPlayed.data, selectedGenre, selectedTag, selectedCategory]);
+  };
+
+  const handleViewMore = (section) => {
+    updateUrl({
+      section,
+    });
+
+    scrollToAllGames();
+  };
+
+  const handleGenreChange = (value) => {
+    setSelectedGenre(value);
+    updateUrl({
+      genre: value,
+    });
+  };
+
+  const handleTagChange = (value) => {
+    setSelectedTag(value);
+    updateUrl({
+      tag: value,
+    });
+  };
+
+  const handleCategoryChange = (value) => {
+    setSelectedCategory(value);
+    updateUrl({
+      category: value,
+    });
+  };
 
   const handleClearFilters = () => {
     setSelectedGenre("");
     setSelectedTag("");
     setSelectedCategory("");
+
+    updateUrl({
+      section: sectionFromUrl,
+      genre: "",
+      tag: "",
+      category: "",
+    });
   };
 
   return (
     <div className="mx-auto w-full max-w-[1260px] px-4">
-      <div className="grid grid-cols-1 gap-10 xl:grid-cols-7 xl:grid-rows-[auto_24px_auto_auto_auto_auto_auto_auto]">
+      <div className="grid grid-cols-1 gap-10 xl:grid-cols-7">
         {/* Title */}
-        <section className="xl:col-start-1 xl:col-end-4 xl:row-start-1 xl:row-end-2">
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-white/35">
-            Discover
-          </p>
+        <section className="xl:col-span-4 flex items-center">
 
-          <h1 className="mt-2 text-3xl font-black text-white">Explore Games</h1>
-
-          <p className="mt-2 max-w-xl text-sm text-white/50">
-            Browse recent games by trending score, rating, playtime, genre,
-            tags, and curated categories.
-          </p>
+          <h1 className="text-3xl font-bold uppercase text-white">discover</h1>
         </section>
 
-        {/* Filter genre */}
-        <div className="xl:col-start-5 xl:col-end-6 xl:row-start-1 xl:row-end-2">
-          <DiscoverFilterSelect
-            label="Genre"
-            value={selectedGenre}
-            options={genreOptions}
-            placeholder="All genres"
-            onChange={setSelectedGenre}
-          />
+        {/* Filters */}
+        <div className="xl:col-span-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <DiscoverFilterSelect
+              label="Genre"
+              value={selectedGenre}
+              options={genreOptions}
+              placeholder="All genres"
+              onChange={handleGenreChange}
+            />
+
+            <DiscoverFilterSelect
+              label="Tag"
+              value={selectedTag}
+              options={tagOptions}
+              placeholder="All tags"
+              onChange={handleTagChange}
+            />
+
+            <div>
+              <DiscoverFilterSelect
+                label="Category"
+                value={selectedCategory}
+                options={CATEGORY_OPTIONS}
+                placeholder="All categories"
+                onChange={handleCategoryChange}
+              />
+
+              {(selectedGenre || selectedTag || selectedCategory) && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="mt-2 text-xs font-semibold text-violet-300 hover:text-violet-200"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Filter tag */}
-        <div className="xl:col-start-6 xl:col-end-7 xl:row-start-1 xl:row-end-2">
-          <DiscoverFilterSelect
-            label="Tag"
-            value={selectedTag}
-            options={tagOptions}
-            placeholder="All tags"
-            onChange={setSelectedTag}
-          />
-        </div>
-
-        {/* Filter category */}
-        <div className="xl:col-start-7 xl:col-end-8 xl:row-start-1 xl:row-end-2">
-          <DiscoverFilterSelect
-            label="Category"
-            value={selectedCategory}
-            options={CATEGORY_OPTIONS}
-            placeholder="All categories"
-            onChange={setSelectedCategory}
-          />
-
-          {(selectedGenre || selectedTag || selectedCategory) && (
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="mt-2 text-xs font-semibold text-violet-300 hover:text-violet-200"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        {/* Trending */}
-        <div className="xl:col-start-1 xl:col-end-8 xl:row-start-3 xl:row-end-5">
-          <DiscoverSection
+        {/* Preview sections */}
+        <div className="xl:col-span-7">
+          <DiscoverPreviewSection
             title="Trending"
-            description="Recent games sorted by trending score"
-            games={filteredTrending}
+            description=""
+            games={trending.data?.data || []}
             loading={trending.loading}
             error={trending.error}
             savedAppids={savedAppids}
             onToggleSave={togglePreference}
+            onViewMore={() => handleViewMore("trending")}
           />
         </div>
 
-        {/* Top Rated */}
-        <div className="xl:col-start-1 xl:col-end-8 xl:row-start-5 xl:row-end-7">
-          <DiscoverSection
+        <div className="xl:col-span-7">
+          <DiscoverPreviewSection
             title="Top Rated"
-            description="Recent games with strong rating percentage"
-            games={filteredTopRated}
+            description=""
+            games={topRated.data?.data || []}
             loading={topRated.loading}
             error={topRated.error}
             savedAppids={savedAppids}
             onToggleSave={togglePreference}
+            onViewMore={() => handleViewMore("top-rated")}
           />
         </div>
 
-        {/* Most Played */}
-        <div className="xl:col-start-1 xl:col-end-8 xl:row-start-7 xl:row-end-9">
-          <DiscoverSection
+        <div className="xl:col-span-7">
+          <DiscoverPreviewSection
             title="Most Played"
-            description="Recent games sorted by average playtime"
-            games={filteredMostPlayed}
+            description=""
+            games={mostPlayed.data?.data || []}
             loading={mostPlayed.loading}
             error={mostPlayed.error}
+            savedAppids={savedAppids}
+            onToggleSave={togglePreference}
+            onViewMore={() => handleViewMore("most-played")}
+          />
+        </div>
+
+        {/* Lazy-loaded section */}
+        <div className="xl:col-span-7">
+          <div className="mt-6 mb-8 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <p className="text-sm text-white/50">
+              Showing{" "}
+              <span className="font-semibold text-white">
+                {getSectionTitle(sectionFromUrl)}
+              </span>
+              {selectedGenre && (
+                <>
+                  {" "}
+                  with genre{" "}
+                  <span className="font-semibold text-violet-300">
+                    {selectedGenre}
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          <AllGamesSection
+            filters={allGamesFilters}
             savedAppids={savedAppids}
             onToggleSave={togglePreference}
           />

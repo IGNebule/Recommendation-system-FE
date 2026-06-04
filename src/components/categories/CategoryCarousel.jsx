@@ -72,17 +72,8 @@ const CategoryCarousel = ({
   return (
     <div className="w-full">
       <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white/35">
-            Explore
-          </p>
 
-          <h2 className="mt-1 text-2xl font-black text-white">
-            Browse by Category
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-end gap-2">
           <button
             type="button"
             onClick={handlePrev}

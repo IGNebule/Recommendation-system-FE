@@ -58,7 +58,7 @@ const HomePage = () => {
     <div className="w-full">
       <div className="mx-auto w-full max-w-[1260px] px-4">
         <BannerSection
-          title="FEATURED & RECOMMENDED"
+          title="Featured & Recommended"
           games={trending.data?.data || []}
           loading={trending.loading}
           error={trending.error}
@@ -70,13 +70,9 @@ const HomePage = () => {
 
         <section className="mb-10">
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-lg uppercase font-normal text-white">
               Recommended For You
             </h2>
-
-            <p className="mt-1 text-sm text-white/50">
-              Based on your saved preferences
-            </p>
           </div>
 
           {isAuthenticated ? (

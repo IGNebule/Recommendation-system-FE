@@ -35,7 +35,7 @@ const buildCategoriesFromGenres = (apiGenres = []) => {
   }).filter((category) => category.available);
 };
 
-const CategorySection = ({ autoLoop = true, delay = 8000 }) => {
+const CategorySection = ({ autoLoop = true, delay = 8000, title }) => {
   const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
@@ -64,7 +64,10 @@ const CategorySection = ({ autoLoop = true, delay = 8000 }) => {
 
   return (
     <section className="mb-12 w-full">
-      {loading && <LoadingState message="Loading categories..." />}
+      <div className="-mb-9">
+        <h2 className="text-lg uppercase font-normal text-white">{title}</h2>
+      </div>
+      {loading && <LoadingState variant="category" count={3} />}
 
       {error && <ErrorState message={error} />}
 

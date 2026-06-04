@@ -3,6 +3,15 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import useAuth from "../../hooks/useAuth";
 
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN
+
+const getAvatarSrc = (avatarUrl) => {
+  if (!avatarUrl) return "";
+  if (avatarUrl.startsWith("http")) return avatarUrl;
+
+  return `${API_ORIGIN}${avatarUrl}`;
+};
+
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "Discover", path: "/discover" },
@@ -92,6 +101,7 @@ const Navbar = ({ isScrolled = false }) => {
   const { user, logout } = useAuth();
   const isLoggedIn = Boolean(user);
 
+  const avatarSrc = getAvatarSrc(user?.avatarUrl);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogout = () => {
@@ -116,10 +126,10 @@ const Navbar = ({ isScrolled = false }) => {
 
   return (
     <div
-      className={`w-full bg-[#171a21] transition-all duration-300 ease-in-out ${
+      className={`relative z-[80] w-full bg-[#171a21] transition-all duration-300 ease-in-out ${
         isScrolled
-          ? "h-0 -translate-y-full opacity-0"
-          : "h-[72px] translate-y-0 opacity-100"
+          ? "h-0 -translate-y-full overflow-hidden opacity-0 pointer-events-none"
+          : "h-[72px] translate-y-0 opacity-100 pointer-events-auto"
       }`}
     >
       <nav className="mx-auto flex h-[72px] max-w-[1260px] items-center justify-between px-4">
@@ -173,21 +183,25 @@ const Navbar = ({ isScrolled = false }) => {
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded bg-white/5 px-2 py-1.5 text-white transition hover:bg-white/10"
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-white transition hover:bg-white/10"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-[#7C3AED] text-sm font-black text-[#171a21]">
-                  {user?.name?.charAt(0)?.toUpperCase() ||
-                    user?.email?.charAt(0)?.toUpperCase() ||
-                    "U"}
-                </div>
-
-                <span className="hidden max-w-32 truncate text-sm font-medium text-white/80 sm:block">
-                  {user?.name || user?.email || "User"}
-                </span>
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt={user?.name || user?.email}
+                    className="h-8 w-8 rounded object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded bg-[#66c0f4] text-sm font-black text-[#171a21]">
+                    {user?.name?.charAt(0)?.toUpperCase() ||
+                      user?.email?.charAt(0)?.toUpperCase() ||
+                      "U"}
+                  </div>
+                )}
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute z-50 right-0 mt-3 w-56 overflow-hidden rounded border border-white/10 bg-[#171a21] shadow-2xl">
+                <div className="absolute right-0 z-[999] mt-3 w-56 overflow-hidden rounded border border-white/10 bg-[#171a21] shadow-2xl">
                   <Link
                     to="/profile"
                     onClick={() => setIsDropdownOpen(false)}
