@@ -59,10 +59,12 @@ const LoginPage = () => {
           </div>
         )}
 
-        <GoogleLoginButton
-          onSuccessRedirect={() => navigate("/")}
-          onError={setError}
-        />
+        <div className="mb-5 w-full">
+          <GoogleLoginButton
+            onSuccessRedirect={() => navigate("/")}
+            onError={setError}
+          />
+        </div>
 
         <div className="my-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-white/10" />
