@@ -98,13 +98,24 @@ const DetailChip = ({ type, value }) => {
   );
 };
 
-const GameHero = ({ game }) => {
+const GameHero = ({ game, isSaved = false, saving = false, onToggleSave }) => {
   const heroImage = toHttps(
     game.bannerScreenshot || game.background || game.header_image,
   );
 
   const mediaImage = toHttps(game.header_image);
   const movieVideo = toHttps(game.movieVideo);
+
+  const handleToggleSave = async () => {
+    if (!onToggleSave || saving) return;
+
+    try {
+      await onToggleSave(game.appid);
+    } catch (err) {
+      console.error("Failed to update library:", err);
+      alert(err.message || "Failed to update your library");
+    }
+  };
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#100f18] shadow-[0_24px_90px_rgba(0,0,0,0.65)]">
@@ -155,11 +166,12 @@ const GameHero = ({ game }) => {
             <span>{game.developer || "Unknown Developer"}</span>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <div className="rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3">
               <p className="text-xs uppercase tracking-wide text-white/35">
                 Price
               </p>
+
               <p className="text-2xl font-black text-white">
                 {formatPrice(game.price)}
               </p>
@@ -169,10 +181,23 @@ const GameHero = ({ game }) => {
               href={getSteamUrl(game.appid)}
               target="_blank"
               rel="noreferrer"
-              className="rounded-xl bg-violet-600 px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-violet-500"
+              className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-violet-600 px-5 text-sm font-black uppercase tracking-wide text-white transition hover:bg-violet-500"
             >
               View on Steam
             </a>
+
+            <button
+              type="button"
+              disabled={saving}
+              onClick={handleToggleSave}
+              className={`inline-flex min-h-[52px] min-w-[132px] items-center justify-center gap-2 rounded-xl border px-5 text-sm font-black uppercase tracking-wide transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                isSaved
+                  ? "border-[#9000e4]/40 bg-[#9000e4]/15 text-[#c287ff] hover:bg-[#9000e4]/25"
+                  : "border-white/15 bg-white/[0.05] text-white hover:border-[#9000e4]/60 hover:bg-[#9000e4]/10 hover:text-[#c287ff]"
+              }`}
+            >
+              {saving ? "Updating..." : isSaved ? "★ Saved" : "☆ Save"}
+            </button>
           </div>
         </div>
       </div>
@@ -445,7 +470,7 @@ const SimilarGamesSection = ({
 
 const GameDetailPage = () => {
   const { appid } = useParams();
-  const { savedAppids, togglePreference } = usePreferences();
+  const { savedAppids, togglePreference, saving } = usePreferences();
 
   const gameRequest = useAsync(() => gameService.getGameById(appid), [appid]);
 
@@ -482,7 +507,12 @@ const GameDetailPage = () => {
 
   return (
     <div className="mx-auto w-full max-w-[1260px] px-4 py-8 text-white">
-      <GameHero game={game} />
+      <GameHero
+        game={game}
+        isSaved={savedAppids.has(String(game.appid))}
+        saving={saving}
+        onToggleSave={togglePreference}
+      />
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(320px,0.3fr)]">
         <main className="space-y-8">
