@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { reportService } from "../services";
+import useAuth from "../hooks/useAuth";
 
 // Edit these three values for your own project identity.
 const WEBSITE_NAME = "GAME RECOMMENDATION SYSTEM";
@@ -166,15 +167,7 @@ const CompactTable = ({ title, rows = [] }) => {
 
 const PrintSection = ({ number, title, children, pageBreak = false }) => {
   return (
-    <section
-      className={`mb-6 ${pageBreak ? "print:break-before-page" : ""}`}
-    >
-      <div className="mb-3 border-y border-black py-2">
-        <h2 className="text-[12px] font-bold uppercase tracking-wide text-black">
-          {number}. {title}
-        </h2>
-      </div>
-
+    <section className={`mb-6 ${pageBreak ? "print:break-before-page" : ""}`}>
       {children}
     </section>
   );
@@ -266,7 +259,9 @@ const PrintTermTable = ({ title, rows = [] }) => {
       <table className="w-full border-collapse text-[10px] text-black">
         <thead>
           <tr className="bg-[#eeeeee]">
-            <th className="w-10 border border-black px-2 py-2 text-center">No</th>
+            <th className="w-10 border border-black px-2 py-2 text-center">
+              No
+            </th>
             <th className="border border-black px-2 py-2 text-left">Term</th>
             <th className="w-[145px] border border-black px-2 py-2 text-center">
               Document Frequency
@@ -303,6 +298,7 @@ const PrintReportDocument = ({
   selectedSections,
   getPrintReportType,
 }) => {
+  const { user } = useAuth();
   const ui = report?.uiDataset || {};
   const ml = report?.mlCorpus || {};
 
@@ -392,9 +388,7 @@ const PrintReportDocument = ({
               {WEBSITE_NAME}
             </h1>
 
-            <p className="mt-1 text-[10px] text-black">
-              {WEBSITE_SUBTITLE}
-            </p>
+            <p className="mt-1 text-[10px] text-black">{WEBSITE_SUBTITLE}</p>
 
             <p className="mt-1 text-[9px] text-black/75">
               Technical Analytics Report • TF-IDF • Cosine Similarity
@@ -404,16 +398,8 @@ const PrintReportDocument = ({
 
         <div className="mt-3 border-t border-black pt-2 text-center">
           <h2 className="text-[16px] font-bold uppercase tracking-wide text-black">
-            Laporan Data Analisis
+            Laporan {getPrintReportType()}
           </h2>
-
-          <p className="mt-1 text-[11px] font-semibold text-black">
-            {getPrintReportType()}
-          </p>
-
-          <p className="mt-1 text-[9px] text-black/75">
-            Tanggal Cetak: {printDate}
-          </p>
         </div>
       </header>
 
@@ -433,9 +419,7 @@ const PrintReportDocument = ({
           title="Corpus Distribution"
           pageBreak={shouldStartNewPage("corpus")}
         >
-          <PrintCorpusDistributionTable
-            rows={ui.targetDistribution || []}
-          />
+          <PrintCorpusDistributionTable rows={ui.targetDistribution || []} />
         </PrintSection>
       ) : null}
 
@@ -468,6 +452,25 @@ const PrintReportDocument = ({
           <PrintTermTable title="Top Tags" rows={ui.tagDistribution || []} />
         </PrintSection>
       ) : null}
+      <div className="mt-16 flex justify-end">
+        <table className="border-collapse text-sm text-black">
+          <tbody>
+            <tr>
+              <td className="pb-2 flex justify-center">Jakarta, {printDate}</td>
+            </tr>
+
+            <tr>
+              <td className="pb-10 flex justify-center">User</td>
+            </tr>
+
+            <tr>
+              <td className="pt-2 font-semibold flex justify-center">
+                {user?.name ?? "Ikhlas Gunawan"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </article>
   );
 };
@@ -673,8 +676,8 @@ const ReportPage = () => {
               </h1>
 
               <p className="mt-3 max-w-3xl text-sm leading-6 text-white/65">
-                This report combines the backend UI dataset from games_ui.csv and
-                the ML corpus from games_content.csv. The backend describes
+                This report combines the backend UI dataset from games_ui.csv
+                and the ML corpus from games_content.csv. The backend describes
                 metadata distribution, while the ML service exposes the real
                 TF-IDF matrix used for cosine similarity.
               </p>
@@ -765,8 +768,8 @@ const ReportPage = () => {
           >
             <p className="mb-5 text-sm leading-7 text-white/65">
               Before vector space modeling can occur, the raw relational data is
-              processed into two operational datasets: games_ui.csv for backend UI
-              enrichment and games_content.csv for ML vectorization.
+              processed into two operational datasets: games_ui.csv for backend
+              UI enrichment and games_content.csv for ML vectorization.
             </p>
 
             <div className="mb-7 grid gap-4 md:grid-cols-3">
@@ -817,9 +820,9 @@ const ReportPage = () => {
           <SectionCard eyebrow="02" title="The Mathematical Framework">
             <p className="text-sm leading-7 text-white/65">
               The recommendation engine transforms game metadata and descriptive
-              text into real-valued vectors using Term Frequency-Inverse Document
-              Frequency. Directional similarity is computed through cosine
-              similarity.
+              text into real-valued vectors using Term Frequency-Inverse
+              Document Frequency. Directional similarity is computed through
+              cosine similarity.
             </p>
 
             <h3 className="mt-6 text-base font-semibold uppercase text-white">
@@ -1017,8 +1020,8 @@ Cosine Similarity(U, G) =
                 <p className="text-sm leading-7 text-white/65">
                   To move beyond an academic prototype, the O(N · V) scan should
                   be migrated to a vector database strategy such as PostgreSQL
-                  with pgvector and HNSW indexing for approximate nearest-neighbor
-                  retrieval.
+                  with pgvector and HNSW indexing for approximate
+                  nearest-neighbor retrieval.
                 </p>
               </div>
             </div>
@@ -1036,10 +1039,7 @@ Cosine Similarity(U, G) =
                 rows={ui.categoryDistribution || []}
               />
 
-              <CompactTable
-                title="Top Tags"
-                rows={ui.tagDistribution || []}
-              />
+              <CompactTable title="Top Tags" rows={ui.tagDistribution || []} />
             </div>
           </SectionCard>
         </div>
