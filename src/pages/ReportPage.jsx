@@ -323,11 +323,17 @@ const PrintReportDocument = ({
     return orderedSectionIds.indexOf(sectionId) > 0;
   };
 
-  const printDate = new Date().toLocaleDateString("id-ID", {
+  const printDate = new Date();
+
+  const dayName = new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+  }).format(printDate);
+
+  const formattedDate = new Intl.DateTimeFormat("id-ID", {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  });
+  }).format(printDate);
 
   const analysisRows = [
     {
@@ -456,7 +462,7 @@ const PrintReportDocument = ({
         <table className="border-collapse text-sm text-black">
           <tbody>
             <tr>
-              <td className="pb-2 flex justify-center">Jakarta, {printDate}</td>
+              <td className="pb-2 flex justify-center">Jakarta, {dayName} {formattedDate}</td>
             </tr>
 
             <tr>
